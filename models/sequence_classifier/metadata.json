@@ -1,0 +1,52 @@
+{
+  "model_type": "LithoCNN",
+  "architecture": "Multi-scale 1D CNN + residual blocks",
+  "window_size": 64,
+  "n_features": 41,
+  "n_classes": 11,
+  "lith_names": [
+    "Anhydrite",
+    "Basement",
+    "Chalk",
+    "Dolomite",
+    "Halite",
+    "Limestone",
+    "Marl",
+    "Sandstone",
+    "Sandstone/Shale",
+    "Shale",
+    "Tuff"
+  ],
+  "int_to_lith": {
+    "0": "Anhydrite",
+    "1": "Basement",
+    "2": "Chalk",
+    "3": "Dolomite",
+    "4": "Halite",
+    "5": "Limestone",
+    "6": "Marl",
+    "7": "Sandstone",
+    "8": "Sandstone/Shale",
+    "9": "Shale",
+    "10": "Tuff"
+  },
+  "lith_to_int": {
+    "Anhydrite": 0,
+    "Basement": 1,
+    "Chalk": 2,
+    "Dolomite": 3,
+    "Halite": 4,
+    "Limestone": 5,
+    "Marl": 6,
+    "Sandstone": 7,
+    "Sandstone/Shale": 8,
+    "Shale": 9,
+    "Tuff": 10
+  },
+  "performance": {
+    "accuracy": 0.6313,
+    "f1_macro": 0.3447,
+    "f1_weighted": 0.6712,
+    "penalty_score": 0.6841
+  }
+}

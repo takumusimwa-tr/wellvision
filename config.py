@@ -29,8 +29,9 @@ LITH_MAP = {
     88000: "Halite",
     86000: "Anhydrite",
     99000: "Tuff",
-    26000: "Coal",
     90000: "Basement",
+    # 26000: Coal — not present in this dataset
+    # 93000: unknown code — 141 samples, dropped
 }
 
 LITH_COLORS = {
@@ -59,3 +60,4 @@ TARGET_COL     = "FORCE_2020_LITHOFACIES_LITHOLOGY"
 CONFIDENCE_COL = "FORCE_2020_LITHOFACIES_CONFIDENCE"
 WELL_COL       = "WELL"
 DEPTH_COL      = "DEPTH_MD"
+PROC_DIR       = PROC  # alias

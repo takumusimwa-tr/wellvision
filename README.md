@@ -11,13 +11,13 @@
 ## Why this project exists
 
 Every metre drilled underground costs money. Knowing what rock formation
-you're drilling through — sandstone, shale, limestone, coal — determines
+you're drilling through — sandstone, shale, limestone — determines
 drilling parameters, completion strategy, and ultimately whether a well
 is economically viable.
 
 Traditionally, lithology interpretation requires a trained petrophysicist
 manually reading log curves. This project automates that process using
-machine learning, trained on 98 wells from the Norwegian Sea with
+machine learning, trained on 118 wells from the Norwegian Sea with
 interpretations made by professional geoscientists.
 
 Built by a Mining Engineer and Radiation Technician who has physically
@@ -41,24 +41,37 @@ in the field.
 | Property | Value |
 |---|---|
 | Source | FORCE 2020 ML Competition |
-| Wells | 118 total (98 train, 10 open test, 10 blind test) |
-| Samples | ~1.17M depth points |
-| Features | 26 well log measurements |
-| Target | 12 lithofacies classes |
-| License | NOLD 2.0 |
+| Wells | 118 LAS files (Norwegian Sea, Viking Graben) |
+| Samples | 1,431,242 labelled depth points |
+| Raw features | 20+ well log curves |
+| Engineered features | 41 (petrophysical derived + rolling statistics) |
+| Target | 11 lithofacies classes |
+| License | NOLD 2.0 / CC-BY-4.0 |
 | Download | https://zenodo.org/records/4351156 |
 
-### Well log features
-GR (gamma ray), RHOB (bulk density), NPHI (neutron porosity),
-DTC (compressional slowness), DTS (shear slowness),
-RMED/RDEP (resistivity), PEF (photoelectric factor),
-CALI (caliper), SP (spontaneous potential),
-and stratigraphic/positional features (X, Y, depth, group).
-
-### Lithofacies classes
+### Lithofacies classes (11)
 Sandstone, Sandstone/Shale, Shale, Marl, Dolomite,
-Limestone, Chalk, Halite, Anhydrite, Tuff,
-Coal, Basement.
+Limestone, Chalk, Halite, Anhydrite, Tuff, Basement.
+
+> **Note on Coal:** Coal (code 26000) appears in the FORCE 2020 competition
+> description but is absent from all 118 wells in this dataset — geologically
+> consistent with the Norwegian North Sea formations. Code 93000 (141 samples,
+> unknown origin) was dropped as too rare to train on reliably.
+
+### Class distribution
+| Lithofacies | Samples | % |
+|---|---|---|
+| Shale | 877,043 | 61.3% |
+| Sandstone | 207,704 | 14.5% |
+| Sandstone/Shale | 180,820 | 12.6% |
+| Limestone | 69,498 | 4.9% |
+| Marl | 41,038 | 2.9% |
+| Tuff | 17,431 | 1.2% |
+| Halite | 14,712 | 1.0% |
+| Chalk | 14,043 | 1.0% |
+| Basement | 4,754 | 0.3% |
+| Dolomite | 2,391 | 0.2% |
+| Anhydrite | 1,808 | 0.1% |
 
 ---
 
@@ -68,30 +81,26 @@ Coal, Basement.
 wellvision/
 ├── data/
 │   ├── raw/
-│   │   └── force2020/        ← FORCE 2020 CSVs (downloaded)
-│   └── processed/            ← Feature-engineered data + figures
+│   │   └── force2020/                  ← 118 LAS files (downloaded)
+│   └── processed/
+│       ├── figures/                    ← 9 EDA and feature figures
+│       ├── features_labelled.parquet   ← 1.4M × 41 feature matrix
+│       └── feature_metadata.json       ← feature names, class map
 │
 ├── notebooks/
-│   ├── 01_eda.ipynb                  ← Well log visualisation, lithofacies distribution
-│   ├── 02_feature_engineering.ipynb  ← Petrophysical derived features
-│   ├── 03_xgboost_classifier.ipynb   ← XGBoost + RF baseline
-│   └── 04_1d_cnn.ipynb               ← Depth-sequence 1D CNN
+│   ├── 01_eda.ipynb                    ← Well log viz, class distribution
+│   ├── 02_feature_engineering.ipynb    ← Petrophysical features, imputation
+│   ├── 03_xgboost_classifier.ipynb     ← XGBoost + RF baseline
+│   └── 04_1d_cnn.ipynb                 ← Depth-sequence 1D CNN
 │
 ├── models/
-│   ├── lithology_classifier/   ← XGBoost/RF model + metadata
-│   └── sequence_classifier/    ← 1D CNN model + metadata
+│   ├── lithology_classifier/           ← XGBoost model + metadata
+│   └── sequence_classifier/            ← 1D CNN model + metadata
 │
-├── api/
-│   └── main.py                 ← FastAPI: /predict /well /health
-│
-├── dashboard/
-│   └── app.py                  ← Streamlit well log viewer
-│
-├── scripts/
-│   └── download_datasets.py    ← Zenodo downloader
-│
-├── tests/
-├── .github/workflows/ci.yml
+├── config.py                           ← Shared paths, class maps, constants
+├── api/main.py                         ← FastAPI: /predict /well /health
+├── dashboard/app.py                    ← Streamlit well log viewer
+├── scripts/download_datasets.py        ← Zenodo downloader (no auth needed)
 ├── requirements.txt
 └── README.md
 ```
@@ -115,39 +124,54 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 python scripts/download_datasets.py
 ```
 
-Downloads train.csv (~150 MB) and test.csv from Zenodo. No authentication required.
+Downloads 170 MB zip from Zenodo and extracts 118 LAS files.
+No Kaggle account or authentication required.
 
 ### 3. Run notebooks in order
 
 ```
-notebooks/01_eda.ipynb                 → EDA and well log visualisation
-notebooks/02_feature_engineering.ipynb → Petrophysical features
-notebooks/03_xgboost_classifier.ipynb  → Baseline classifier
-notebooks/04_1d_cnn.ipynb              → 1D CNN sequence classifier
+01_eda.ipynb                  → EDA: 118 wells, curve availability, crossplots
+02_feature_engineering.ipynb  → 41 petrophysical + rolling features
+03_xgboost_classifier.ipynb   → XGBoost baseline classifier
+04_1d_cnn.ipynb               → 1D CNN depth-sequence classifier
 ```
+
+---
+
+## Engineered features (41 total)
+
+| Category | Features |
+|---|---|
+| Raw log curves | GR, RHOB, NPHI, RDEP, RMED, DTC, CALI, DRHO |
+| Log-transformed | LOG_RDEP, LOG_RMED, RES_RATIO |
+| Petrophysical derived | VSHALE, PHID, PHIN, PHITOTAL, AI |
+| Depth | DEPTH_ABS, DEPTH_NORM |
+| Spatial | X_LOC, Y_LOC, Z_LOC |
+| Rolling (5-sample ~0.75m) | GR, RHOB, NPHI, RDEP, VSHALE — mean + std |
+| Rolling (21-sample ~3m) | GR, RHOB, NPHI, RDEP, VSHALE — mean + std |
 
 ---
 
 ## Key engineering context
 
 Wireline well logging measures physical properties of rock formations
-at depth using tools lowered into a borehole on a cable. The key sensors:
+at depth using tools lowered into a borehole on a cable. Key sensors:
 
 - **Gamma Ray (GR):** measures natural radioactivity. Shales are radioactive
-  (high GR); clean sandstones and carbonates are not (low GR). The single
-  most diagnostic lithology indicator.
+  (high GR); clean sandstones and carbonates are not (low GR).
 - **Bulk Density (RHOB):** denser rocks (limestone, dolomite) read higher.
-  Coal reads very low (~1.3 g/cc) making it highly distinctive.
 - **Neutron Porosity (NPHI):** sensitive to hydrogen content — high in
-  porous formations and coal.
-- **Resistivity (RMED/RDEP):** hydrocarbons and tight rocks resist current;
-  saltwater-saturated formations conduct it. Distinguishes fluid types.
-- **Photoelectric Factor (PEF):** highly sensitive to mineralogy, especially
-  useful for distinguishing carbonate types.
+  porous formations.
+- **Resistivity (RMED/RDEP):** tight rocks and evaporites resist current.
+  Halite shows extreme resistivity — highly distinctive.
+- **Acoustic Impedance (AI = RHOB × Vp):** computed from RHOB and DTC.
+  Tight carbonates have AI > 10,000; clean sands 6,000–8,000.
+- **Vshale:** linear gamma ray index normalised per well (P5/P95 endpoints).
+  Industry-standard shale volume estimator.
 
-The crossplot of RHOB vs NPHI is the classic lithology identification
-technique used by petrophysicists since the 1970s. Machine learning
-can learn these relationships across 26 dimensions simultaneously.
+The RHOB-NPHI density-neutron crossplot is the classic petrophysicist
+tool for lithology discrimination — in use since the 1970s. This project
+learns equivalent relationships across 41 dimensions simultaneously.
 
 ---
 

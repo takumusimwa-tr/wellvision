@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Data — raw files are large
+data/raw/
+
+# Processed — ignore large CSVs, track figures
+data/processed/*.csv
+data/processed/*.parquet
+
+# Model binaries
+models/**/*.pkl
+models/**/*.joblib
+models/**/*.pt
+models/**/*.pth
+models/**/*.h5
+
+# BUT track metadata
+!models/**/metadata.json
+!models/**/feature_columns.json
+!models/**/class_map.json
+
+# MLflow
+mlruns/
+mlflow/
+
+# Logs
+logs/*.db
+logs/*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Env & secrets
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# pytest
+.pytest_cache/
+.coverage
